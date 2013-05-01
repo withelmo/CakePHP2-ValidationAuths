@@ -30,9 +30,9 @@ class MultivalidatableAuthenticate extends FormAuthenticate {
 		'validationRule' => '',
 		'passwordHash' => true,
 	);
-    
+
 	public function authenticate(CakeRequest $request, CakeResponse $response) {
-        
+
 		$userModel = $this->settings['userModel'];
 		list($plugin, $model) = pluginSplit($userModel);
 
@@ -40,7 +40,14 @@ class MultivalidatableAuthenticate extends FormAuthenticate {
 		if (empty($request->data[$model])) {
 			return false;
 		}
-        
+
+        foreach (array($fields['username'], $fields['password']) as $field) {
+            $value = $request->data($model . '.' . $field);
+            if (empty($value) || !is_string($value)) {
+                return false;
+            }
+        }
+
         $ModelClass = ClassRegistry::init($userModel);
         $ModelClass->set($request->data);
 
@@ -55,7 +62,7 @@ class MultivalidatableAuthenticate extends FormAuthenticate {
         }
         return false;
 	}
-    
+
 	protected function _password($password) {
         if ( $this->settings['passwordHash'] ) {
     		return Security::hash($password, null, true);
